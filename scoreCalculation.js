@@ -54,7 +54,7 @@ function getSortedNumericValues(selectedCards, hand)
     while (selectedCards[i]) 
     {
         let card = strValue(selectedCards[i], hand);
-        if (card) numbers.push(card.numericValue);
+        if (card) numbers.push(card.rank);
         i++;
     }
     numbers.sort((a, b) => a - b);

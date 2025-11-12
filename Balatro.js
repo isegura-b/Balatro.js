@@ -25,7 +25,7 @@ class Card {
             return 12;
         else if (this.value == 'K')
             return 13;
-        else // A
+        else 
             return 14;
     }
 
