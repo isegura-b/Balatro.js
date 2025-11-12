@@ -3,16 +3,30 @@ class Card {
         this.value = value;
         this.suit = suit;
         this.numericValue = this.calculateNumericValue();
+        this.rank = this.calculateRank();
         this.displayValue = this.toDisplay();
     }
 
     calculateNumericValue() {
         if (this.value >= 2 && this.value <= 10)
-            return this.value;
+            return Number(this.value);
         else if (this.value == 'J' || this.value == 'Q' || this.value == 'K')
             return 10;
         else
             return 11;
+    }
+
+    calculateRank() {
+        if (this.value >= 2 && this.value <= 10)
+            return Number(this.value);
+        else if (this.value == 'J')
+            return 11;
+        else if (this.value == 'Q')
+            return 12;
+        else if (this.value == 'K')
+            return 13;
+        else // A
+            return 14;
     }
 
     showCard() {
@@ -93,7 +107,7 @@ function showHand(hand) {
     console.log("\n                 ==== Cards in hand ====");
     sortedHand.forEach((card) => {
         const label = String(card.displayValue).padStart(3, ' ');
-        console.log(`                        ${label} (${card.value}${card.suit}) ${card.numericValue}`);
+        console.log(`                        ${label} (${card.value}${card.suit})`);
     });
     console.log("                 =======================\n");
 }
@@ -128,20 +142,25 @@ function checkCards(hand, selectedCards) {
     return 1;
 }
 
-function discardCards(hand, selectedCards, deck) {
+function discardCards(hand, selectedCards, deck) 
+{
     let i = 0;
     let j = 1;
 
-    while (selectedCards[j]) {
+    while (selectedCards[j]) 
+    {
         if (i >= hand.length)
             return 0;
 
-        if (selectedCards[j] == hand[i].displayValue) {
+        if (selectedCards[j] == hand[i].displayValue) 
+        {
             j++;
             hand.splice(i, 1);
             drawCards(deck, 1, hand);
             i = 0;
-        } else {
+        } 
+        else 
+        {
             i++;
         }
     }
@@ -150,82 +169,10 @@ function discardCards(hand, selectedCards, deck) {
 }
 
 const {
-    straightFlush,
-    fourKind,
-    fullHouse,
-    flush,
-    straight,
-    threeKind,
-    twoPair,
-    onePair,
-    highCard
+    scoreCalculation
 } = require("./scoreCalculation");
 
-function scoreCalculation(selectedCards) 
-{
-    let score = 0;
 
-/*    if (straightFlush(selectedCards))
-    {
-        score = straightFlush(selectedCards);
-        console.log(`Straight Flush! +${score} points`);
-        return score;
-    }
-    else if (fourKind(selectedCards))
-    {
-        score = fourKind(selectedCards);
-        console.log(`Four of a Kind! +${score} points`);
-        return score;
-    }
-    else if (fullHouse(selectedCards))
-    {
-        score = fullHouse(selectedCards);
-        console.log(`Full House! +${score} points`);
-        return score;
-    }
-    else if (flush(selectedCards))
-    {
-        score = flush(selectedCards);
-        console.log(`Flush! +${score} points`);
-        return score;
-    }
-    else if (straight(selectedCards))
-    {
-        score = straight(selectedCards);
-        console.log(`Straight! +${score} points`);
-        return score;
-    }
-    else if (fullHouse(selectedCards))
-    {
-        score = fullHouse(selectedCards);
-        console.log(`Full House! +${score} points`);
-        return score;
-    }
-    else if (threeKind(selectedCards))
-    {
-        score = threeKind(selectedCards);
-        console.log(`Three of a Kind! +${score} points`);
-        return score;
-    }
-    else if (twoPair(selectedCards))
-    {
-        score = twoPair(selectedCards);
-        console.log(`Two Pair! +${score} points`);
-        return score;
-    }
-    else if (onePair(selectedCards))
-    {
-        score = onePair(selectedCards);
-        console.log(`One Pair! +${score} points`);
-        return score;
-    }
-    else// (highCard)*/
-    {
-        score = highCard(selectedCards);
-        console.log(`High Card! +${score} points`);
-        return score;
-    }
-}
 
 async function startBlind(hand, deck, hands, discards, ante, score) 
 {
@@ -239,9 +186,8 @@ async function startBlind(hand, deck, hands, discards, ante, score)
  
         // Espera al input del jugador
         const input = await askQuestion("P = play hand     D = discard hand     EXIT = exit game\n");
-        const selectedCards = input.trim().split(" "); //Esto hay que cambiarlo, no tengo value aqui444444444444444444444444444444444444444444444444444
+        const selectedCards = input.trim().split(" ");
         const command = selectedCards[0];
-
         let i = 0;
         while (selectedCards[i])
             i++;
@@ -254,12 +200,13 @@ async function startBlind(hand, deck, hands, discards, ante, score)
 
         if (i > 1 && i <= 6 && checkCards(hand, selectedCards))    
         {
-            if (command == "P") 
-            {
-                hands--;
-                score += scoreCalculation(selectedCards);
-                discardCards(hand, selectedCards, deck);
-            } 
+                if (command == "P") 
+                {
+                    hands--;
+                    const cardsOnly = selectedCards.slice(1);
+                    score += scoreCalculation(cardsOnly, hand);
+                    discardCards(hand, selectedCards, deck);
+                } 
             else if (command == "D") 
             {
                 if (discards <= 0) 
@@ -274,7 +221,7 @@ async function startBlind(hand, deck, hands, discards, ante, score)
                 }
             }
         }
-        else if (i == 0)
+        else if (i == 0 || command != "P" && command != "D" && command != "EXIT")
             console.log("[Command not found.]\n");
         else if (i == 1) 
             console.log("[No cards selected.]\n");
@@ -291,12 +238,11 @@ async function startBlind(hand, deck, hands, discards, ante, score)
         }
     }
 
-    // Salimos del bucle: o ganó el nivel o se quedó sin manos
     if (score >= ante) 
     {
         console.log("\n🎉🎉🎉 Congratulations! 🎉🎉🎉");
         console.log("╔════════════════════════╗");
-        console.log("║    LEVEL CLEARED!     ║");
+        console.log("║    LEVEL CLEARED!      ║");
         console.log("╚════════════════════════╝");
         console.log(`You scored ${score} points and surpassed the ante of ${ante}!\n`);
         console.log("✨ On to the next challenge! ✨\n");
@@ -306,7 +252,7 @@ async function startBlind(hand, deck, hands, discards, ante, score)
     {
         console.log("\n💀💀💀 GAME OVER 💀💀💀");
         console.log("╔════════════════════════╗");
-        console.log("║      YOU LOST!        ║");
+        console.log("║      YOU LOST!         ║");
         console.log("╚════════════════════════╝");
         console.log(`You scored only ${score} points. The ante was ${ante}.\n`);
         console.log("☠️ Better luck next time! ☠️\n");
@@ -334,6 +280,9 @@ async function startState(hand, deck, bet)
 
     while (ante <= 8) 
     {
+        const deck = createDeck();
+//        shuffleDeck(deck);
+        const hand = [];
         let score = 0;
         drawCards(deck, 8, hand);
         playing = await startBlind(hand, deck, 5, 3, calculateBet(ante), score);
